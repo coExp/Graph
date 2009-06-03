@@ -9,15 +9,17 @@
 // Affiche un message d'aide ------------------------------------------------
 void AfficheAide ( void )
 {
-	printf ( "\n[Graph] Résolution des graphs -----------------------" ) ;
-	printf ( "\n\t-h : ce message d'aide" ) ;
-	printf ( "\n\t-v : mode verbose, bavard" ) ;
-	printf ( "\n\t-V : mode verbose encore plus, bavard encore plus" ) ;
-	printf ( "\n\t-c : charge aussi les consos courantes" ) ;
-	printf ( "\n\t-l : parcour le graph en largeur" ) ;
-	printf ( "\n\t-p : OU parcour le graph en proffondeur (PAS FINIT)" ) ;
-	printf ( "\n\t-f foo.txt : charge le graph du fichier foo.txt" ) ;
-	printf ( "\n" ) ;
+	printf( "[Graph] Résolution des graphs -----------------------" ) ;
+	printf( "\nUsage: graph [OPTIONS] -f file.txt" );
+	printf( "\n\t-f foo.txt : charge le graph du fichier foo.txt" ) ;
+	printf( "\n\t-x : export result in \'foo.res\' file" ) ;
+	printf( "\n\t-v : mode verbose, bavard" ) ;
+	printf( "\n\t-V : mode verbose encore plus, bavard encore plus" ) ;
+	printf( "\n\t-c : charge aussi les consos courantes" ) ;
+	printf( "\n\t-l : parcour le graph en largeur" ) ;
+	printf( "\n\t-p : OU parcour le graph en proffondeur" ) ;
+	printf( "\n\t-h : ce message d'aide" ) ;
+	printf( "\n" ) ;
 }
 
 // Affiche le resultat du flot total max --------------------------------------
@@ -81,7 +83,7 @@ void AfficheListe ( struct Chainon *L )
 }
 
 // Retrouve le parcour ------------------------------------------------------------
-void AfficheParcour( void )
+void AfficheParcour( int OPTIONS )
 {
 	int i = NBR_SOMMET - 1 ;
 	

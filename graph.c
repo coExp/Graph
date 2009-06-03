@@ -16,7 +16,7 @@ void InitMatrice ( void )
 }
 
 // Charge le fichier et flot en memoire ---------------------------------------
-int ChargeFichier ( char * fichier )
+int ChargeFichier ( char * fichier, int OPTIONS )
 {
 	FILE *ptr;		// Pointeur sur le fichier
 	size_t s;		// Taille du nom lu
@@ -85,7 +85,7 @@ int ChargeFichier ( char * fichier )
 }	
 
 // Marque le sommet et l'affiche ----------------------------------------------
-void MarqueSommet ( int i, int vientDe, int Plus ) 
+void MarqueSommet ( int i, int vientDe, int Plus, int OPTIONS ) 
 {
 	if ( OPTIONS & VERB )
 		printf ( "\n\tMarque \033[0;32m%2s\033[0;m venant de \033[1;32m%2s\033[0;m" , NomSommet [ i ], NomSommet [ vientDe ] ) ; 
@@ -96,7 +96,7 @@ void MarqueSommet ( int i, int vientDe, int Plus )
 // ----------------------------------------------------------------------------
 // Parcour le graphe en LARGEUR  ----------------------------------------------
 // ----------------------------------------------------------------------------
-void Parcour_Largeur ( int Som ) 
+void Parcour_Largeur ( int Som, int OPTIONS ) 
 {
 	struct Liste L ;	// Liste des sommets à parcourir
 	L.prems = NULL ;
@@ -104,7 +104,7 @@ void Parcour_Largeur ( int Som )
 	int i, LeSommet ;
 
 	AjouteFin ( Som , &L ) ;
-	MarqueSommet ( Som, Som , 1 ) ;
+	MarqueSommet ( Som, Som , 1, OPTIONS ) ;
 	while ( L.prems )	
 	{
 		if ( OPTIONS & G_VERB )
@@ -117,16 +117,14 @@ void Parcour_Largeur ( int Som )
 		{
 			// Si le sommet n'est pas marqué ET si lien entre sommet ET possibilité de GAIN
 			if ( ( Sommet[i] == -1 ) && (( Matrice_Max [ LeSommet ][ i ] - Matrice_Conso[ LeSommet ][i] ) > 0.0 )  )
-			{
-				if ( OPTIONS & G_VERB ) { DEBUG_1 }
-				MarqueSommet ( i, LeSommet, 1 ) ; 
+			{				
+				MarqueSommet ( i, LeSommet, 1, OPTIONS ) ; 
 				AjouteFin ( i, &L ) ;
 			}
 			// Si le sommet n'est pas marqué ET si lien entre sommet ET possibilité de BAISSE
 			else if ( ( Sommet[i] == -1 ) && ( Matrice_Conso[ i ][ LeSommet ] > 0.0 ) )
-			{
-				if ( OPTIONS & G_VERB ) { DEBUG_1 } 
-				MarqueSommet ( i, LeSommet, 0 ) ;
+			{		
+				MarqueSommet ( i, LeSommet, 0, OPTIONS ) ;
 				AjouteFin ( i, &L ) ;
 			}
 		}
@@ -136,7 +134,7 @@ void Parcour_Largeur ( int Som )
 // -------------------------------------------------------------------------------
 // Parcour le graphe en PROFFONDEUR ----------------------------------------------
 // -------------------------------------------------------------------------------
-void Parcour_Proffondeur ( int LeSommet )
+void Parcour_Proffondeur ( int LeSommet, int OPTIONS )
 {
        int i;
 
@@ -145,8 +143,8 @@ void Parcour_Proffondeur ( int LeSommet )
         {
         	if ( ( Matrice_Max[ LeSommet ][ i ] > Matrice_Conso[ LeSommet ][ i ] ) && ( Sommet[ i ] == -1 ) )
                 {
-                	MarqueSommet( i, LeSommet, 1 ); // Marque sommet i venant de LeSommet
-                        Parcour_Proffondeur( i );       // Parcour sommet i
+                	MarqueSommet( i, LeSommet, 1, OPTIONS ); // Marque sommet i venant de LeSommet
+                        Parcour_Proffondeur( i, OPTIONS );       // Parcour sommet i
                 }
         }
        // Pour tout i : SI Flot > 0  ET Sommet i non marqué ALORS
@@ -154,8 +152,8 @@ void Parcour_Proffondeur ( int LeSommet )
        {
        	   if ( ( Matrice_Conso[ i ][ LeSommet ] > 0 ) && ( Sommet[ i ] == -1 ) )
            {
-		MarqueSommet( i, LeSommet, 0 ); // Marque sommet i venant de LeSommet
-                Parcour_Proffondeur( i );       // Parcour sommet i
+		MarqueSommet( i, LeSommet, 0, OPTIONS ); // Marque sommet i venant de LeSommet
+                Parcour_Proffondeur( i, OPTIONS );       // Parcour sommet i
            }
        }
 }
@@ -229,35 +227,34 @@ void Init_Marquage ( void )
 }
 
 // ----------------------------------------------------------------------------
-void AfficheAide ( void ) ;
-void LitOptions  ( int argc, char ** argv ) ;
-// ----------------------------------------------------------------------------
 int main ( int agc, char ** argv ) 
 {
 	int NbrIteration = 1 ;
-	int Min ;
+	int Min;
+	int OPTIONS;
+	char * FileName;
 
-	LitOptions ( agc, argv ) ;  	// Charge le Graph contenu ds le fichier
+	FileName = LitOptions ( agc, argv, &OPTIONS ) ;  	// Charge le Graph contenu ds le fichier
 
 	do 
 	{
-		/* 1 */ RED printf ( "\n( %d ) PARCOUR LE FLOT ", NbrIteration ) ; DEFAULT_COLOR
+		/* 1 */ if ( OPTIONS & VERB ) { RED printf ( "\n( %d ) PARCOUR LE FLOT ", NbrIteration ) ; DEFAULT_COLOR }
 			
 		Init_Marquage () ;	// Reinitialise le marquage des sommets
 
 		if ( OPTIONS & PROF )
-			Parcour_Proffondeur ( 0 ); 
+			Parcour_Proffondeur ( 0, OPTIONS ); 
 		else if ( OPTIONS & LARG )
-			Parcour_Largeur ( 0 );
+			Parcour_Largeur ( 0, OPTIONS );
 
-		/* 2 */ RED printf ( "\n( %d ) RECHERCHE CHAINE AUGMENTANTE ", NbrIteration ) ; DEFAULT_COLOR
+		/* 2 */ if ( OPTIONS & VERB ) { RED printf ( "\n( %d ) RECHERCHE CHAINE AUGMENTANTE ", NbrIteration ) ; DEFAULT_COLOR }
 
 		if ( OPTIONS & VERB )
-			AfficheParcour () ;
+			AfficheParcour ( OPTIONS ) ;
 
 		Min = RechercheParcour () ; 
 
-		/* 3 */ RED printf( "\n( %d ) APPLIQUE CHAINE AUGMENTANTE DE \033[1;33m%d ", NbrIteration, Min ) ; DEFAULT_COLOR
+		/* 3 */ if ( OPTIONS & VERB ) { RED printf( "\n( %d ) APPLIQUE CHAINE AUGMENTANTE DE \033[1;33m%d ", NbrIteration, Min ) ; DEFAULT_COLOR }
 
 		AppliqueParcour ( Min ) ;
 
@@ -268,45 +265,61 @@ int main ( int agc, char ** argv )
 		
 	} while ( Min != 0 ) ;
 
-	CYAN 
-	printf( "\n\n   -----------------------------------" );
-	printf(   "\n  ----       RESULTAT FINAL        ----" );
+	if ( OPTIONS & VERB )
+	{
+		CYAN 
+		printf( "\n\n   -----------------------------------" );
+		printf(   "\n  ----       RESULTAT FINAL        ----" );
+	}
 	DEFAULT_COLOR
 	AfficheConso () ;
 	AfficheTotal () ;
+
+	if ( OPTIONS & EXPORT )
+	{
+		FILE * ptr ;
+		if ( (ptr=fopen(Change_Extention(FileName, ".res"), "w") ) != NULL )
+			Write_matrix_to_file( ptr, NBR_SOMMET, NomSommet, Matrice_Max, Matrice_Conso, 1, OPTIONS & CONSO );
+		else 
+			exit( EXIT_FAILURE );
+	}
+
 	return 0;
 }
 
 
 // Lit les options entrées en arguments -------------------------------------
-void LitOptions  ( int argc, char ** argv )
+char * LitOptions  ( int argc, char ** argv, int * OPTIONS )
 {
 	int opt ;
 	char * NomFichier;
-	OPTIONS = 0 ;
+	*OPTIONS = 0 ;
 
-	while ( ( opt = getopt(argc, argv, "cVvlpf:h") ) != -1 ) 
+	while ( ( opt = getopt(argc, argv, "xcVvlpf:h") ) != -1 ) 
 	{
 		switch ( opt ) 
 		{
+			case 'x' :
+				*OPTIONS |= EXPORT; 
+				break;
 			case 'c' :
-				OPTIONS |= CONSO ; 
+				*OPTIONS |= CONSO ; 
 				break;
 			case 'v' :
-				OPTIONS |= VERB ; 
+				*OPTIONS |= VERB ; 
 				break;
 			case 'V' :
-				OPTIONS |= VERB | G_VERB ; 
+				*OPTIONS |= VERB | G_VERB ; 
 				break;
 			case 'p' :
-				OPTIONS |= PROF ; 
+				*OPTIONS |= PROF ; 
 				break;
 			case 'l' :
-				OPTIONS |= LARG ; 
+				*OPTIONS |= LARG ; 
 				break;
 			case 'f' :
 				NomFichier = optarg ;
-				OPTIONS |= FICH ;
+				*OPTIONS |= FICH ;
 				break;
 			case 'h' :
 				AfficheAide () ;
@@ -319,17 +332,19 @@ void LitOptions  ( int argc, char ** argv )
 		}
 	}
 	// Si aucun mode de parcoure demamnde, on en fix un
-	if ( ! ( OPTIONS & 3 ) )
-		OPTIONS |= LARG ;
+	if ( ! ( *OPTIONS & 3 ) )
+		*OPTIONS |= LARG ;
 
 	// FICH : Si un fichier bien entre
-	if ( ! ( OPTIONS & FICH ) )
+	if ( ! ( *OPTIONS & FICH ) )
 	{
 		AfficheAide () ;
 		exit ( EXIT_FAILURE ) ;
 	}
 
 	// Chager le fichier avec les graph des conso et max
-	if ( ChargeFichier ( NomFichier ) )
+	if ( ChargeFichier ( NomFichier, *OPTIONS ) )
 		exit ( EXIT_FAILURE ) ; 
+
+	return NomFichier;
 }
