@@ -16,116 +16,108 @@ void InitMatrice ( void )
 }
 
 // Charge le fichier et flot en memoire ---------------------------------------
-int ChargeFichier ( char * fichier, int OPTIONS )
+int ChargeFichier (char * fichier, int OPTIONS)
 {
 	FILE *ptr;		// Pointeur sur le fichier
 	size_t s;		// Taille du nom lu
 	int i, j ;		// deux lettres de l'alphabete
 	char *tmp = (char *) calloc ( 1, 50 ) ;	// Nom temporaire du sommet : max 50 char
-	char * tmpNom ;	// Pointeur vers la vraie future zone memoire du nom
+	char *tmpNom ;	// Pointeur vers la vraie future zone memoire du nom
 
-	if ( ( ptr = fopen ( fichier, "r+" ) ) == NULL )
-	{	
-		fprintf ( stderr, "Erreur: Lors de l'ouverture du fichier\n" ) ;
-		return 2 ;	// Erreur sur fichier
+	if ((ptr = fopen(fichier, "r+")) == NULL) {
+		fprintf(stderr, "Erreur: Lors de l'ouverture du fichier\n");
+		return 2;	// Erreur sur fichier
 	}
 
 	// Lit le nombre de Sommets
-	fscanf( ptr, "%d", &NBR_SOMMET );
-	if ( NBR_SOMMET <= 0 )
+	fscanf(ptr, "%d", &NBR_SOMMET);
+	if (NBR_SOMMET <= 0)
 	    return 3;
 
 	// Alloue la memoire pour la matrice Max
-	Matrice_Max = (float **) malloc ( sizeof ( float * ) * NBR_SOMMET );
-	for( i = 0 ; i < NBR_SOMMET ; i++ )
-		Matrice_Max [ i ] = malloc ( sizeof ( float ) * NBR_SOMMET);
+	Matrice_Max = (float **) malloc (sizeof (float *) * NBR_SOMMET);
+	for (i = 0; i < NBR_SOMMET; i++)
+		Matrice_Max[i] = malloc(sizeof (float) * NBR_SOMMET);
 
 	// Alloue la memoire pour la matrice Conso
-	Matrice_Conso = (float **) malloc ( sizeof ( float * ) * NBR_SOMMET );
-	for( i = 0 ; i < NBR_SOMMET ; i++ )
-		Matrice_Conso [ i ] = malloc ( sizeof (float ) * NBR_SOMMET);
+	Matrice_Conso = (float **) malloc (sizeof (float *) * NBR_SOMMET);
+	for (i = 0; i < NBR_SOMMET; i++)
+		Matrice_Conso[i] = malloc(sizeof (float) * NBR_SOMMET);
 
 	// Alloue memoire pour les noms des sommets
-	NomSommet = (char **) malloc ( sizeof ( char * ) * NBR_SOMMET );
+	NomSommet = (char **) malloc(sizeof (char *) * NBR_SOMMET);
 
 	// Alloue memoire pour les marquage entre sommets (Qui marque qui)
-	Sommet   =   (int *) malloc ( sizeof ( int ) * NBR_SOMMET ) ;
-	SommetPlus = (int *) malloc ( sizeof ( int ) * NBR_SOMMET ) ;
+	Sommet      = (int *) malloc(sizeof (int) * NBR_SOMMET);
+	SommetPlus  = (int *) malloc(sizeof (int) * NBR_SOMMET);
 
 	// Lit le nom des Sommets :
-	for ( i = 0 ; i < NBR_SOMMET ; i++ )
-	{
-		fscanf ( ptr, "%49s",  tmp ) ;	
-		s = strlen ( tmp ) ;
-	      	tmpNom = (char *) calloc ( 1, s + 3 ) ;
-		memcpy ( tmpNom, tmp, s ) ;//strncpy ( tmpNom , tmp, s )  ;
-		tmpNom [ (int) s ] = '\0' ;
-	      	NomSommet [ i ] = tmpNom ;
+	for (i = 0; i < NBR_SOMMET; i++) {
+		fscanf(ptr, "%49s", tmp);
+		s = strlen(tmp);
+	    tmpNom = (char *) calloc(1, s + 3) ;
+		memcpy(tmpNom, tmp, s);
+		tmpNom[(int) s] = '\0';
+	    NomSommet[i] = tmpNom;
 	}
 
 	// Lit les consommation max entre chaque sommet :
-	for( i = 0 ; i < NBR_SOMMET ; i++ )
-	{
-		for ( j = 0 ; j < NBR_SOMMET ; j++ ) 		
-			fscanf( ptr, "%f", &Matrice_Max[ i ][ j ] );		
+	for (i = 0; i < NBR_SOMMET; i++)
+		for (j = 0; j < NBR_SOMMET; j++)
+			fscanf(ptr, "%f", &Matrice_Max[i][j]);
+
+    // Charge les consos si il y en a :
+    if (OPTIONS & CONSO) {
+        fscanf(ptr, "%49s\n", tmp);	// lit une ligne de séparation 49 char max
+        for (i = 0; i < NBR_SOMMET; i++)
+          for (j = 0; j < NBR_SOMMET; j++)
+              fscanf(ptr, "%f", &Matrice_Conso[i][j]);
+    } else {
+	    InitMatrice () ;
 	}
 
-	// Charge les consos si il y en a :
-	if ( OPTIONS & CONSO )
-	{	
-	      fscanf ( ptr, "%49s\n", tmp ) ;	// lit une ligne de séparation 49 char max
-	      for( i = 0 ; i < NBR_SOMMET ; i++ )
-		      for ( j = 0 ; j < NBR_SOMMET ; j++ ) 		
-			      fscanf( ptr, "%f", &Matrice_Conso[ i ][ j ] );		
-	}
-	else 
-	      InitMatrice () ;
-
-	return 0 ;	// Ok, tout c'est bien passé 
-}	
+	return 0;	// Ok, tout c'est bien passé
+}
 
 // Marque le sommet et l'affiche ----------------------------------------------
-void MarqueSommet ( int i, int vientDe, int Plus, int OPTIONS ) 
+void MarqueSommet(int i, int vientDe, int Plus, int OPTIONS)
 {
-	if ( OPTIONS & VERB )
-		printf ( "\n\tMarque \033[0;32m%2s\033[0;m venant de \033[1;32m%2s\033[0;m" , NomSommet [ i ], NomSommet [ vientDe ] ) ; 
-	Sommet [ i ] = vientDe ;	// Associe les deux sommets
-	SommetPlus [ i ] = Plus ;	// Plus = 1  OU  Moins = 0
+	if (OPTIONS & VERB)
+		printf ( "\n\tMarque \033[0;32m%2s\033[0;m venant de \033[1;32m%2s\033[0;m" , NomSommet [ i ], NomSommet [ vientDe ] ) ;
+
+	Sommet[i]     = vientDe;	// Associe les deux sommets
+	SommetPlus[i] = Plus;	    // Plus = 1  OU  Moins = 0
 }
 
 // ----------------------------------------------------------------------------
 // Parcour le graphe en LARGEUR  ----------------------------------------------
 // ----------------------------------------------------------------------------
-void Parcour_Largeur ( int Som, int OPTIONS ) 
+void Parcour_Largeur(int Som, int OPTIONS)
 {
-	struct Liste L ;	// Liste des sommets à parcourir
-	L.prems = NULL ;
-	L.der = NULL ;
-	int i, LeSommet ;
+	struct Liste L;	// Liste des sommets à parcourir
+	L.prems = NULL;
+	L.der = NULL;
+	int i, LeSommet;
 
-	AjouteFin ( Som , &L ) ;
-	MarqueSommet ( Som, Som , 1, OPTIONS ) ;
-	while ( L.prems )	
-	{
-		if ( OPTIONS & G_VERB )
-		      AfficheListe ( L.prems );  // Affiche la liste de sommet à parcourir
+	AjouteFin(Som , &L);
+	MarqueSommet(Som, Som, 1, OPTIONS);
+	while (L.prems)	{
+		if (OPTIONS & G_VERB)
+		      AfficheListe(L.prems);    // Affiche la liste de sommet à parcourir
 
-		LeSommet = L.prems->Sommet; // Recupere le sommet que l'on traite
-		SupprimePrems ( &L );	// Supprime le sommet en cour de la liste
+		LeSommet = L.prems->Sommet;     // Recupere le sommet que l'on traite
+		SupprimePrems(&L);	        // Supprime le sommet en cour de la liste
 
-		for ( i = 0 ; i < NBR_SOMMET ; i++ ) 
-		{
+		for (i = 0; i < NBR_SOMMET; i++) {
 			// Si le sommet n'est pas marqué ET si lien entre sommet ET possibilité de GAIN
-			if ( ( Sommet[i] == -1 ) && (( Matrice_Max [ LeSommet ][ i ] - Matrice_Conso[ LeSommet ][i] ) > 0.0 )  )
-			{				
-				MarqueSommet ( i, LeSommet, 1, OPTIONS ) ; 
-				AjouteFin ( i, &L ) ;
+			if ((Sommet[i] == -1) && ((Matrice_Max[LeSommet][i] - Matrice_Conso[LeSommet][i] ) > 0.0)) {
+				MarqueSommet(i, LeSommet, 1, OPTIONS);
+				AjouteFin(i, &L);
 			}
 			// Si le sommet n'est pas marqué ET si lien entre sommet ET possibilité de BAISSE
-			else if ( ( Sommet[i] == -1 ) && ( Matrice_Conso[ i ][ LeSommet ] > 0.0 ) )
-			{		
-				MarqueSommet ( i, LeSommet, 0, OPTIONS ) ;
-				AjouteFin ( i, &L ) ;
+			else if ((Sommet[i] == -1) && (Matrice_Conso[i][LeSommet] > 0.0)) {
+				MarqueSommet(i, LeSommet, 0, OPTIONS);
+				AjouteFin(i, &L);
 			}
 		}
 	}
@@ -134,217 +126,204 @@ void Parcour_Largeur ( int Som, int OPTIONS )
 // -------------------------------------------------------------------------------
 // Parcour le graphe en PROFFONDEUR ----------------------------------------------
 // -------------------------------------------------------------------------------
-void Parcour_Proffondeur ( int LeSommet, int OPTIONS )
+void Parcour_Proffondeur(int LeSommet, int OPTIONS)
 {
-       int i;
+    int i;
 
-       // Pour tout i : SI Capacité > Flot ET Sommet i non marqué ALORS
-	for ( i = 0 ; i < NBR_SOMMET ; i++ )
-        {
-        	if ( ( Matrice_Max[ LeSommet ][ i ] > Matrice_Conso[ LeSommet ][ i ] ) && ( Sommet[ i ] == -1 ) )
-                {
-                	MarqueSommet( i, LeSommet, 1, OPTIONS ); // Marque sommet i venant de LeSommet
-                        Parcour_Proffondeur( i, OPTIONS );       // Parcour sommet i
-                }
+    // Pour tout i : SI Capacité > Flot ET Sommet i non marqué ALORS
+	for (i = 0; i < NBR_SOMMET; i++) {
+        if ((Matrice_Max[LeSommet][i] > Matrice_Conso[LeSommet][i]) && (Sommet[i] == -1)) {
+            MarqueSommet(i, LeSommet, 1, OPTIONS);  // Marque sommet i venant de LeSommet
+            Parcour_Proffondeur(i, OPTIONS);        // Parcour sommet i
         }
-       // Pour tout i : SI Flot > 0  ET Sommet i non marqué ALORS
-       for ( i = 0 ; i < NBR_SOMMET ; i++ )
-       {
-       	   if ( ( Matrice_Conso[ i ][ LeSommet ] > 0 ) && ( Sommet[ i ] == -1 ) )
-           {
-		MarqueSommet( i, LeSommet, 0, OPTIONS ); // Marque sommet i venant de LeSommet
-                Parcour_Proffondeur( i, OPTIONS );       // Parcour sommet i
-           }
-       }
-}
-       
+    }
 
-// Recherche le pacour, le minimum, et si c'est une chaine augmentante ------------
-int RechercheParcour ( void )
+    // Pour tout i : SI Flot > 0  ET Sommet i non marqué ALORS
+    for (i = 0; i < NBR_SOMMET; i++) {
+       if ((Matrice_Conso[i][LeSommet] > 0) && (Sommet[i] == -1)) {
+            MarqueSommet( i, LeSommet, 0, OPTIONS ); // Marque sommet i venant de LeSommet
+            Parcour_Proffondeur( i, OPTIONS );       // Parcour sommet i
+       }
+    }
+}
+
+// -------------------------------------------------------------------------------
+// Recherche le pacour, le minimum, et si c'est une chaine augmentante -----------
+// -------------------------------------------------------------------------------
+int RechercheParcour(void)
 {
-	int tmp, Min ;
-	int i = NBR_SOMMET - 1 ;
+	int tmp, Min;
+	int i = NBR_SOMMET - 1;
 
 	// Si P n'est pas marquée, alors il n'y a plus d'optimisation possible
-	if ( Sommet[ i ] == -1 )
-		return 0 ;
+	if (Sommet[i] == -1)
+		return 0;
 
-	if ( SommetPlus [ i ] )
-		Min = Matrice_Max[ Sommet[ i ] ][ i ] - Matrice_Conso[ Sommet[i] ][ i ] ; 
+	if (SommetPlus[i])
+		Min = Matrice_Max[Sommet[i]][i] - Matrice_Conso[Sommet[i]][i];
 	else 
-		Min = Matrice_Conso[ i ][ Sommet[i] ] ; 
+		Min = Matrice_Conso[i][Sommet[i]];
 		
-//	if ( Min == 0 )
-//	    Min = Matrice_Conso[ i ][ Sommet[i] ] ;
-
-	// Tant que l'on passe par un sommet marque ET pas par l'entrée 
-	while ( ( Sommet[ i ] != -1  ) && ( i != 0 ) ) 
-	{	
+	// Tant que l'on passe par un sommet marque ET pas par l'entrée
+	while ((Sommet[i] != -1) && (i != 0)) {
 		// Difference de consomation
-		if ( SommetPlus[ i ] )
-			tmp =  Matrice_Max[ Sommet[i] ][ i ] - Matrice_Conso[ Sommet[i] ][ i ] ;
+		if (SommetPlus[i])
+			tmp = Matrice_Max[Sommet[i]][i] - Matrice_Conso[Sommet[i]][i];
 		else
-			tmp =  Matrice_Conso[ i ][ Sommet[i] ] ;
+			tmp = Matrice_Conso[i][Sommet[i]];
 
-//		if ( tmp == 0 )
-//		    tmp = Matrice_Conso[ i ][ Sommet[i] ] ;
-
-		if ( tmp < Min )
-			Min = tmp ;
-		i = Sommet [ i ] ;
+		if (tmp < Min)
+			Min = tmp;
+		i = Sommet[i];
 	}
-	return Min ;
+
+	return Min;
 }
 
-// Applique l'augmentation au parcour ------------------------------------------
-void AppliqueParcour ( int AjouteConso ) 
+// --------------------------------------------------------------------------------
+// Applique l'augmentation au parcour ---------------------------------------------
+// --------------------------------------------------------------------------------
+void AppliqueParcour(int AjouteConso)
 {	
-	int i = NBR_SOMMET - 1 ;
+    int i = NBR_SOMMET - 1;
 
-	while ( ( Sommet[ i ] != -1  ) && ( i != 0 ) ) 
-	{
-/*		if ( SommetPlus [ i ] )
-			Matrice_Conso[ Sommet[i] ][ i ] += AjouteConso ;
-		else 
-			Matrice_Conso[ Sommet[i] ][ i ] -= AjouteConso ;*/
-		
-		if ( Matrice_Max[ Sommet[i] ][ i ] )
-		    Matrice_Conso [ Sommet[i] ][ i ] += AjouteConso;
-		else
-		    Matrice_Conso [ i ][ Sommet[i] ] -= AjouteConso;
-		    
-		i = Sommet [ i ] ;
-	}
+    while ((Sommet[i] != -1) && (i != 0)) {
+        if (Matrice_Max[Sommet[i]][i])
+            Matrice_Conso[Sommet[i]][i] += AjouteConso;
+        else
+            Matrice_Conso[i][Sommet[i]] -= AjouteConso;
+
+        i = Sommet[i];
+    }
 }
 
-// Initialise le tableau des marquages des sommets ------------------------------
-void Init_Marquage ( void )
+// --------------------------------------------------------------------------------
+// Initialise le tableau des marquages des sommets --------------------------------
+// --------------------------------------------------------------------------------
+void Init_Marquage(void)
 {
-	int i ;
-	Sommet [ 0 ] = 0 ;
-	for ( i = 1 ; i < NBR_SOMMET ; i++ )
-		Sommet [ i ] = -1 ;
+	int i;
+	Sommet[0] = 0;
+	for (i = 1; i < NBR_SOMMET; i++)
+		Sommet[i] = -1;
 }
 
 // ----------------------------------------------------------------------------
-int main ( int agc, char ** argv ) 
+int main(int agc, char ** argv)
 {
-	int NbrIteration = 1 ;
+	int NbrIteration = 1;
 	int Min;
 	int OPTIONS;
 	char * FileName;
 
-	FileName = LitOptions ( agc, argv, &OPTIONS ) ;  	// Charge le Graph contenu ds le fichier
+	FileName = LitOptions(agc, argv, &OPTIONS);
 
-	do 
-	{
-		/* 1 */ if ( OPTIONS & VERB ) { RED printf ( "\n( %d ) PARCOUR LE FLOT ", NbrIteration ) ; DEFAULT_COLOR }
+	do {
+		/* 1 */ if (OPTIONS & VERB) {RED printf("\n( %d ) PARCOUR LE FLOT ", NbrIteration); DEFAULT_COLOR}
 			
-		Init_Marquage () ;	// Reinitialise le marquage des sommets
+		Init_Marquage();	// Reinitialise le marquage des sommets
 
-		if ( OPTIONS & PROF )
-			Parcour_Proffondeur ( 0, OPTIONS ); 
-		else if ( OPTIONS & LARG )
-			Parcour_Largeur ( 0, OPTIONS );
+		if (OPTIONS & PROF)
+			Parcour_Proffondeur(0, OPTIONS);
+		else if (OPTIONS & LARG)
+			Parcour_Largeur(0, OPTIONS);
 
-		/* 2 */ if ( OPTIONS & VERB ) { RED printf ( "\n( %d ) RECHERCHE CHAINE AUGMENTANTE ", NbrIteration ) ; DEFAULT_COLOR }
+		/* 2 */ if (OPTIONS & VERB) { RED printf("\n( %d ) RECHERCHE CHAINE AUGMENTANTE ", NbrIteration); DEFAULT_COLOR}
 
-		if ( OPTIONS & VERB )
-			AfficheParcour ( OPTIONS ) ;
+		if (OPTIONS & VERB)
+			AfficheParcour(OPTIONS);
 
-		Min = RechercheParcour () ; 
+		Min = RechercheParcour();
 
-		/* 3 */ if ( OPTIONS & VERB ) { RED printf( "\n( %d ) APPLIQUE CHAINE AUGMENTANTE DE \033[1;33m%d ", NbrIteration, Min ) ; DEFAULT_COLOR }
+		/* 3 */ if (OPTIONS & VERB) {RED printf("\n( %d ) APPLIQUE CHAINE AUGMENTANTE DE \033[1;33m%d ", NbrIteration, Min); DEFAULT_COLOR}
 
-		AppliqueParcour ( Min ) ;
+		AppliqueParcour(Min);
 
-		if ( OPTIONS & G_VERB )
-			AfficheConso () ;
+		if (OPTIONS & G_VERB)
+			AfficheConso();
 
-		NbrIteration ++ ;
-		
-	} while ( Min != 0 ) ;
+		NbrIteration ++;
 
-	if ( OPTIONS & VERB )
-	{
+	} while (Min != 0);
+
+	if (OPTIONS & VERB)	{
 		CYAN 
-		printf( "\n\n   -----------------------------------" );
-		printf(   "\n  ----       RESULTAT FINAL        ----" );
+		printf("\n\n   -----------------------------------");
+		printf("\n  ----       RESULTAT FINAL        ----");
 	}
 	DEFAULT_COLOR
-	AfficheConso () ;
-	AfficheTotal () ;
+	AfficheConso();
+	AfficheTotal();
 
-	if ( OPTIONS & EXPORT )
-	{
+	if (OPTIONS & EXPORT) {
 		FILE * ptr ;
-		if ( (ptr=fopen(Change_Extention(FileName, ".res"), "w") ) != NULL )
-			Write_matrix_to_file( ptr, NBR_SOMMET, NomSommet, Matrice_Max, Matrice_Conso, 1, OPTIONS & CONSO );
+		if ((ptr=fopen(Change_Extention(FileName, ".res"), "w") ) != NULL)
+			Write_matrix_to_file(ptr, NBR_SOMMET, NomSommet, Matrice_Max, Matrice_Conso, 1, OPTIONS & CONSO);
 		else 
-			exit( EXIT_FAILURE );
+			exit(EXIT_FAILURE);
 	}
 
 	return 0;
 }
 
 
-// Lit les options entrées en arguments -------------------------------------
-char * LitOptions  ( int argc, char ** argv, int * OPTIONS )
+// --------------------------------------------------------------------------------
+// Lit les options entrées en arguments -------------------------------------------
+// --------------------------------------------------------------------------------
+char * LitOptions(int argc, char ** argv, int * OPTIONS)
 {
 	int opt ;
 	char * NomFichier;
 	*OPTIONS = 0 ;
 
-	while ( ( opt = getopt(argc, argv, "xcVvlpf:h") ) != -1 ) 
-	{
-		switch ( opt ) 
-		{
+	while ((opt = getopt(argc, argv, "xcVvlpf:h")) != -1) {
+		switch (opt) {
 			case 'x' :
 				*OPTIONS |= EXPORT; 
 				break;
 			case 'c' :
-				*OPTIONS |= CONSO ; 
+				*OPTIONS |= CONSO;
 				break;
 			case 'v' :
-				*OPTIONS |= VERB ; 
+				*OPTIONS |= VERB;
 				break;
 			case 'V' :
-				*OPTIONS |= VERB | G_VERB ; 
+				*OPTIONS |= VERB | G_VERB;
 				break;
 			case 'p' :
-				*OPTIONS |= PROF ; 
+				*OPTIONS |= PROF;
 				break;
 			case 'l' :
-				*OPTIONS |= LARG ; 
+				*OPTIONS |= LARG;
 				break;
 			case 'f' :
-				NomFichier = optarg ;
-				*OPTIONS |= FICH ;
+				NomFichier = optarg;
+				*OPTIONS |= FICH;
 				break;
 			case 'h' :
-				AfficheAide () ;
-				exit ( EXIT_SUCCESS ) ;
+				AfficheAide();
+				exit(EXIT_SUCCESS);
 				break;
 			default: 	
-				fprintf ( stderr, "\nErreur: Argument inconnu" ) ;
-				AfficheAide () ;
-				exit ( EXIT_FAILURE ) ;
+				fprintf(stderr, "\nErreur: Argument inconnu");
+				AfficheAide();
+				exit(EXIT_FAILURE);
 		}
 	}
+
 	// Si aucun mode de parcoure demamnde, on en fix un
-	if ( ! ( *OPTIONS & 3 ) )
-		*OPTIONS |= LARG ;
+	if (!( *OPTIONS & 3))
+		*OPTIONS |= LARG;
 
 	// FICH : Si un fichier bien entre
-	if ( ! ( *OPTIONS & FICH ) )
-	{
-		AfficheAide () ;
-		exit ( EXIT_FAILURE ) ;
+	if (!( *OPTIONS & FICH)) {
+		AfficheAide();
+		exit(EXIT_FAILURE);
 	}
 
 	// Chager le fichier avec les graph des conso et max
-	if ( ChargeFichier ( NomFichier, *OPTIONS ) )
-		exit ( EXIT_FAILURE ) ; 
+	if (ChargeFichier(NomFichier, *OPTIONS))
+		exit(EXIT_FAILURE);
 
 	return NomFichier;
 }
