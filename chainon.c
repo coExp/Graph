@@ -26,58 +26,58 @@
 {
 	
 }*/
-void AjouteFin ( int Som, struct Liste * L ) 
+void AjouteFin (int Som, struct Liste * L)
 {
-	struct Chainon * C = ( struct Chainon * ) malloc ( sizeof ( struct Chainon ) );	
+	struct Chainon * C = (struct Chainon *) malloc (sizeof(struct Chainon));
 	
-	C->Sommet = Som ;
-	C->suiv = NULL ;
+	C->Sommet = Som;
+	C->suiv = NULL;
 	
-	if ( L->der )
-		L->der->suiv = C ;
+	if (L->der)
+		L->der->suiv = C;
 	else
-		L->prems = C ;
+		L->prems = C;
 		
 	L->der = C;
 	
-	return ;
+	return;
 }
 
-void SupprimePrems ( struct Liste * L )
+void SupprimePrems (struct Liste * L)
 {
 	SI_PAS_DE_PREMS
 
-	struct Chainon * C = L->prems ;
-	L->prems = C->suiv ;
-	free ( C ) ;
+	struct Chainon * C = L->prems;
+	L->prems = C->suiv;
+	free(C);
 
 	SI_PAS_DE_PREMS
 }
-void SupprimeDer ( struct Liste * L ) 
-{
 
-	if ( ! L->prems ) 
-	{
-		L->prems = NULL ;
-		L->der = NULL ;
-		return ;
+void SupprimeDer (struct Liste * L)
+{
+	if (!L->prems) {
+		L->prems = NULL;
+		L->der = NULL;
+		return;
 	}
+
 	struct Chainon * AvantC = NULL;
 	struct Chainon * LeC    = L->prems;
 	
-	while ( LeC->suiv ) 
-	{
-			AvantC = LeC ;
-			LeC = LeC->suiv ;
+	while (LeC->suiv) {
+        AvantC = LeC;
+        LeC = LeC->suiv;
 	}
-	if ( ! AvantC )
-	{
+
+	if (!AvantC) {
 		L->prems = NULL;
-		L->der = NULL ;
-		return ;
+		L->der = NULL;
+		return;
 	}
-	free ( LeC ) ;
-	L->der = AvantC ;
-	L->der->suiv = NULL ;
-	return ;
+
+	free(LeC);
+	L->der = AvantC;
+	L->der->suiv = NULL;
+	return;
 }
